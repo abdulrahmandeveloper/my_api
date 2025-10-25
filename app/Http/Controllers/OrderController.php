@@ -12,7 +12,7 @@ class OrderController extends Controller
     {
         $order= Order::all();
         if ($order->isEmpty()) {
-            return response()->json(["message" => "No orders found", "data" => []], 204);
+            return response()->json( ["message" => "No orders found", "data" => []], 204);
         }
         return response()->json(["message" => "Orders retrieved successfully", "data" => $order], 200);
     }
@@ -20,7 +20,11 @@ class OrderController extends Controller
     
     public function store(Request $request)
     {
-        $order = Order::create($request->all());
+        $validatedData = $request->validate([
+            'customer_id' => 'required|integer|exists:customers,id',
+            'order_date' => 'required|date',
+        ]);
+        $order = Order::create($validatedData);
         return response()->json(["message" => "Order created successfully", "data" => $order], 201);
     }
 
@@ -29,7 +33,7 @@ class OrderController extends Controller
     {
         $order = Order::find($id);
         if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
+            return response()->json( ["message" => "Order not found"], 404);
         }
         return response()->json(["message" => "Order retrieved successfully", "data" => $order], 200);
     }
@@ -41,7 +45,13 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }
-        $order->update($request->all());
+
+        $validatedData = $request->validate([
+            'customer_id' => 'sometimes|integer|exists:customers,id',
+            'order_date' => 'sometimes|date',
+        ]);
+
+        $order->update($validatedData);
         return response()->json(["message" => "Order updated successfully", "data" => $order], 200);
     }
 

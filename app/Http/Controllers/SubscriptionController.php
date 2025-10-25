@@ -10,13 +10,24 @@ class SubscriptionController extends Controller
     
     public function index()
     {
-       return response()->json(["message" => "Subscriptions retrieved successfully", "data" => Subscription::all()], 200);
+        $subscriptions = Subscription::all();
+        if ($subscriptions->isEmpty()) {
+            return response()->json(["message" => "No subscriptions found", "data" => []], 204);
+        }
+        return response()->json(["message" => "Subscriptions retrieved successfully", "data" => $subscriptions], 200);
     }
 
    
     public function store(Request $request)
     {
-        $subscription = Subscription::create($request->all());
+        $validatedData = $request->validate([
+            'customer_id' => 'required|integer|exists:users,id',
+    
+            'status' => 'required|string|in:active,inactive,cancelled',
+            'start_date' => 'required|date',
+            'end_date' => 'sometimes|date|after_or_equal:start_date'
+        ]);
+        $subscription = Subscription::create($validatedData);
         return response()->json(["message" => "Subscription created successfully", "data" => $subscription], 201);
     }
 
@@ -40,7 +51,13 @@ class SubscriptionController extends Controller
         if (!$subscription) {
             return response()->json(['message' => 'Subscription not found'], 404);
         }
-        $subscription->update($request->all());
+        $validatedData = $request->validate([
+            'customer_id' => 'sometimes|required|integer|exists:users,id',
+            'status' => 'sometimes|required|string|in:active,inactive,cancelled',
+            'start_date' => 'sometimes|required|date',
+            'end_date' => 'sometimes|date|after_or_equal:start_date'
+        ]);
+        $subscription->update($validatedData);
         return response()->json(["message" => "Subscription updated successfully", "data" => $subscription], 200);
     }
 

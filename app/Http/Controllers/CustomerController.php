@@ -20,7 +20,13 @@ class CustomerController extends Controller
    
     public function store(Request $request)
     {
-        $customers = Customer::create($request->all());
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'sometimes|email',
+            'phone' => 'required|string|unique:customers,phone',
+            'address' => 'sometimes|string|max:500'
+        ]);
+        $customers = Customer::create($validatedData);
         return response()->json(["message" => "Customer created successfully", "data" => $customers], 201);
     }
 
@@ -44,7 +50,6 @@ class CustomerController extends Controller
                 return response()->json(['message' => 'Customer not found'], 404);
             }
 
-            // Check if phone number is being updated and if it's already taken by another customer
             if ($request->has('phone') && $request->phone !== $customer->phone) {
                 $existingCustomer = Customer::where('phone', $request->phone)
                     ->where('id', '!=', $id)

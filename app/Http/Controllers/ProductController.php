@@ -11,7 +11,11 @@ class ProductController extends Controller
 
     public function index()
     {
-        return Product::all();
+        $products = Product::all();
+        if ($products->isEmpty()) {
+            return Response()->json(["message" => "No products found", "data" => []], 204);
+        }
+        return Response()->json(["message" => 'Products retrieved successfully', 'data' => $products], 200);
     }
 
 
@@ -35,7 +39,7 @@ class ProductController extends Controller
         if (is_null($product)) {
             return Response()->json(['message' => 'Product Not Found'], 404);
         }
-        return Response()->json($product);
+        return Response()->json(["message" => 'Product retrieved successfully', 'data' => $product]);
     }
 
 
@@ -46,8 +50,6 @@ class ProductController extends Controller
             return Response()->json(['message' => 'Product Not Found'], 404);
         }
        
-        $product = Product::findOrFail($id);
-
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'model' => 'sometimes|string|max:255',
@@ -56,7 +58,7 @@ class ProductController extends Controller
         ]);
 
         $product->update($validated);
-        return Response()->json($product);
+        return Response()->json(["message" => 'Product updated successfully', 'data' => $product]);
     }
 
   
@@ -70,15 +72,6 @@ class ProductController extends Controller
         return Response()->json(['message' => 'Product Deleted Successfully']);
     }
 
-     public function edit(string $id)
-    {
-        $product = Product::find($id);
-        if (is_null($product)) {
-            return Response()->json(['message' => 'Product Not Found'], 404);
-        }
-        $product->edit();
-        return Response()->json($product);
-    }
 }
    
 

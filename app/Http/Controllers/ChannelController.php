@@ -11,13 +11,22 @@ class ChannelController extends Controller
     public function index()
     {
        $channel = Channel::all();
-       return response()->json(["data" => $channel]);
+       if ($channel->isEmpty()) {
+           return response()->json(['message' => 'No channels found', 'data' => []], 200);
+       }
+       return response()->json(["message" => 'Channels retrieved successfully', "data" => $channel], 200);
     }
 
     
     public function store(Request $request)
     {
-        $channel = Channel::create($request->all());
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            "status" => 'required|in:active,inactive',
+        ]);
+        $channel = Channel::create($validatedData);
+
         return response()->json(["message" => "Channel created successfully", "data" => $channel], 201);
     }
 
@@ -28,7 +37,7 @@ class ChannelController extends Controller
         if (!$channel) {
             return response()->json(['message' => 'Channel not found'], 404);
         }
-        return response()->json(["message" => "Channel retrieved successfully", "data" => $channel]);
+        return response()->json(["message" => "Channel retrieved successfully", "data" => $channel], 200);
     }
 
         
@@ -41,8 +50,13 @@ class ChannelController extends Controller
         if (!$channel) {
             return response()->json(['message' => 'Channel not found'], 404);
         }
-        $channel->update($request->all());
-        return response()->json(["message" => "Channel updated successfully", "data" => $channel]);
+        $validatedData = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|nullable|string',
+            "status" => 'sometimes|required|in:active,inactive',
+        ]);
+        $channel->update($validatedData);
+        return response()->json(["message" => "Channel updated successfully", "data" => $channel], 200);
     }
 
     
@@ -53,7 +67,7 @@ class ChannelController extends Controller
             return response()->json(['message' => 'Channel not found'], 404);
         }
         $channel->delete();
-        return response()->json(['message' => 'Channel deleted successfully']);
+        return response()->json(['message' => 'Channel deleted successfully'], 200);
     }
         
     
