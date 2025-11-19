@@ -13,7 +13,7 @@ class ProductController extends Controller
     {
         $products = Product::all();
         if ($products->isEmpty()) {
-            return Response()->json(["message" => "No products found", "data" => []], 204);
+            return Response()->json(["message" => "No products found", "data" => []], 200);
         }
         return Response()->json(["message" => 'Products retrieved successfully', 'data' => $products], 200);
     }

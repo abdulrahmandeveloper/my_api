@@ -44,6 +44,10 @@ class CategoryController extends Controller
 
         $category = Category::findOrFail($id);
 
+        if(!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
+
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:30',
             'description' => 'sometimes|nullable|string'
@@ -56,6 +60,9 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        if (!$category) {
+            return response()->json(['message' => 'Category not found'], 404);
+        }
         $category->delete();
         return response()->json(['message' => 'Category deleted successfully'], 200);
     }

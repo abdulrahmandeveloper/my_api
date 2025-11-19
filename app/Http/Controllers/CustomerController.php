@@ -12,7 +12,7 @@ class CustomerController extends Controller
     {
         $customers = Customer::all();
         if ($customers->isEmpty()) {
-            return response()->json(["message" => "No customers found", "data" => []], 204);
+            return response()->json(["message" => "No customers found", "data" => []], 200);
         }
         return response()->json(["message" => "Customers retrieved successfully", "data" => $customers], 200);
     }

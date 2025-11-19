@@ -12,7 +12,7 @@ class OrderController extends Controller
     {
         $order= Order::all();
         if ($order->isEmpty()) {
-            return response()->json( ["message" => "No orders found", "data" => []], 204);
+            return response()->json( ["message" => "No orders found", "data" => []], 200);
         }
         return response()->json(["message" => "Orders retrieved successfully", "data" => $order], 200);
     }

@@ -12,7 +12,7 @@ class SubscriptionController extends Controller
     {
         $subscriptions = Subscription::all();
         if ($subscriptions->isEmpty()) {
-            return response()->json(["message" => "No subscriptions found", "data" => []], 204);
+            return response()->json(["message" => "No subscriptions found", "data" => []], 200);
         }
         return response()->json(["message" => "Subscriptions retrieved successfully", "data" => $subscriptions], 200);
     }
@@ -21,11 +21,10 @@ class SubscriptionController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'customer_id' => 'required|integer|exists:users,id',
-    
-            'status' => 'required|string|in:active,inactive,cancelled',
+            'customer_id' => 'required|integer|exists:customers,id',
             'start_date' => 'required|date',
-            'end_date' => 'sometimes|date|after_or_equal:start_date'
+            'end_date' => 'sometimes|date|after_or_equal:start_date',
+            "channel_id" => 'required|integer|exists:channels,id'
         ]);
         $subscription = Subscription::create($validatedData);
         return response()->json(["message" => "Subscription created successfully", "data" => $subscription], 201);
