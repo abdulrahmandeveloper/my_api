@@ -68,5 +68,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/categories/{id}', [CategoryController::class, 'update']); 
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']); 
     
-    // });
+   
 });

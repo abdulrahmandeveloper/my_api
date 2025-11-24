@@ -4,70 +4,151 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Subscription;
+use App\Http\Requests\StoreSubscriptionRequest;
+use App\Http\Requests\UpdateSubscriptionRequest;
+use Illuminate\Database\QueryException;
 
 class SubscriptionController extends Controller
 {
-    
     public function index()
     {
-        $subscriptions = Subscription::all();
-        if ($subscriptions->isEmpty()) {
-            return response()->json(["message" => "No subscriptions found", "data" => []], 200);
+        try {
+            $subscriptions = Subscription::all();
+            
+            if ($subscriptions->isEmpty()) {
+                return response()->json([
+                    "message" => "No subscriptions found",
+                    "data" => []
+                ], 200);
+            }
+            
+            return response()->json([
+                "message" => "Subscriptions retrieved successfully",
+                "data" => $subscriptions
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve subscriptions',
+                'error' => 'An unexpected error occurred'
+            ], 500);
         }
-        return response()->json(["message" => "Subscriptions retrieved successfully", "data" => $subscriptions], 200);
     }
 
-   
-    public function store(Request $request)
+    public function store(StoreSubscriptionRequest $request)
     {
-        $validatedData = $request->validate([
-            'customer_id' => 'required|integer|exists:customers,id',
-            'start_date' => 'required|date',
-            'end_date' => 'sometimes|date|after_or_equal:start_date',
-            "channel_id" => 'required|integer|exists:channels,id'
-        ]);
-        $subscription = Subscription::create($validatedData);
-        return response()->json(["message" => "Subscription created successfully", "data" => $subscription], 201);
+        try {
+            $subscription = Subscription::create($request->validated());
+            
+            return response()->json([
+                "message" => "Subscription created successfully",
+                "data" => $subscription
+            ], 201);
+            
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Failed to create subscription',
+                'error' => 'Database error occurred'
+            ], 500);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create subscription',
+                'error' => 'An unexpected error occurred'
+            ], 500);
+        }
     }
 
-    
     public function show(string $id)
     {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            return response()->json(['message' => 'Subscription not found'], 404);
+        try {
+            if (!is_numeric($id)) {
+                return response()->json(['message' => 'Invalid subscription ID'], 400);
+            }
+
+            $subscription = Subscription::find($id);
+            
+            if (!$subscription) {
+                return response()->json(['message' => 'Subscription not found'], 404);
+            }
+            
+            return response()->json([
+                "message" => "Subscription retrieved successfully",
+                "data" => $subscription
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve subscription',
+                'error' => 'An unexpected error occurred'
+            ], 500);
         }
-        return response()->json(["message" => "Subscription retrieved successfully", "data" => $subscription], 200);
     }
 
-        
-    
-
-
-    public function update(Request $request, string $id)
+    public function update(UpdateSubscriptionRequest $request, string $id)
     {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            return response()->json(['message' => 'Subscription not found'], 404);
+        try {
+            if (!is_numeric($id)) {
+                return response()->json(['message' => 'Invalid subscription ID'], 400);
+            }
+
+            $subscription = Subscription::find($id);
+            
+            if (!$subscription) {
+                return response()->json(['message' => 'Subscription not found'], 404);
+            }
+
+            $subscription->update($request->validated());
+            
+            return response()->json([
+                "message" => "Subscription updated successfully",
+                "data" => $subscription->fresh()
+            ], 200);
+            
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Failed to update subscription',
+                'error' => 'Database error occurred'
+            ], 500);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update subscription',
+                'error' => 'An unexpected error occurred'
+            ], 500);
         }
-        $validatedData = $request->validate([
-            'customer_id' => 'sometimes|required|integer|exists:users,id',
-            'status' => 'sometimes|required|string|in:active,inactive,cancelled',
-            'start_date' => 'sometimes|required|date',
-            'end_date' => 'sometimes|date|after_or_equal:start_date'
-        ]);
-        $subscription->update($validatedData);
-        return response()->json(["message" => "Subscription updated successfully", "data" => $subscription], 200);
     }
 
     public function destroy(string $id)
     {
-        $subscription = Subscription::find($id);
-        if (!$subscription) {
-            return response()->json(['message' => 'Subscription not found'], 404);
+        try {
+            if (!is_numeric($id)) {
+                return response()->json(['message' => 'Invalid subscription ID'], 400);
+            }
+
+            $subscription = Subscription::find($id);
+            
+            if (!$subscription) {
+                return response()->json(['message' => 'Subscription not found'], 404);
+            }
+
+            $subscription->delete();
+            
+            return response()->json([
+                'message' => 'Subscription deleted successfully'
+            ], 200);
+            
+        } catch (QueryException $e) {
+            return response()->json([
+                'message' => 'Failed to delete subscription',
+                'error' => 'Database constraint violation'
+            ], 500);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete subscription',
+                'error' => 'An unexpected error occurred'
+            ], 500);
         }
-        $subscription->delete();
-        return response()->json(['message' => 'Subscription deleted successfully']);
     }
 }
-
